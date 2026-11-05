@@ -2,7 +2,7 @@ name: otel_svix
 description: >-
   OpenTelemetry instrumentation for svix by Dartastic.io. Adds standard
   OpenTelemetry observability to applications that use svix.
-version: 0.1.0-wip
+version: 0.1.0
 repository: https://github.com/dartastic/otel_svix
 homepage: https://dartastic.io
 
