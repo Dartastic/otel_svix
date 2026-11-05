@@ -1,15 +1,16 @@
-// Licensed under the Dartastic Pro Software License Agreement.
+// Licensed under the Apache License, Version 2.0
 // Copyright 2025-2026 Mindful Software LLC d/b/a Dartastic.io, All rights reserved.
 
-import 'package:dartastic_opentelemetry/dartastic_opentelemetry.dart';
+import 'package:dartastic_opentelemetry_api/dartastic_opentelemetry_api.dart';
 
 import 'otel_svix_suppression.dart';
 
 const _tracerName = 'dartastic_otel_libs_svix';
 
-Tracer _tracer() => OTel.tracerProvider().getTracer(_tracerName);
+APITracer _tracer() => OTelAPI.tracerProvider().getTracer(_tracerName);
 
 class SvixResult {
+  /// Creates a result.
   const SvixResult({
     this.appId,
     this.endpointId,
@@ -56,8 +57,13 @@ class SvixResult {
   final int? statusCode;
 }
 
+/// What a traced call returned: the value for the caller plus fields
+/// recorded on the span.
 class SvixCallResult<T> {
+  /// Creates a call result.
   const SvixCallResult({required this.value, this.result});
+
+  /// The value returned to the caller.
   final T value;
   final SvixResult? result;
 }
@@ -83,68 +89,69 @@ Future<T> tracedSvix<T>({
   final span = _tracer().startSpan(
     'svix $operation',
     kind: SpanKind.client,
-    attributes: OTel.attributesFromMap(m),
+    attributes: OTelAPI.attributesFromMap(m),
   );
   try {
     final r = await invoke();
     if (r.result != null) {
       final extras = <Attribute<Object>>[];
       if (r.result!.appId != null) {
-        extras.add(OTel.attributeString('svix.app.id', r.result!.appId!));
+        extras.add(OTelAPI.attributeString('svix.app.id', r.result!.appId!));
       }
       if (r.result!.endpointId != null) {
-        extras.add(OTel.attributeString(
+        extras.add(OTelAPI.attributeString(
           'svix.endpoint.id',
           r.result!.endpointId!,
         ));
       }
       if (r.result!.messageId != null) {
-        extras.add(OTel.attributeString(
+        extras.add(OTelAPI.attributeString(
           'svix.message.id',
           r.result!.messageId!,
         ));
       }
       if (r.result!.attemptId != null) {
-        extras.add(OTel.attributeString(
+        extras.add(OTelAPI.attributeString(
           'svix.attempt.id',
           r.result!.attemptId!,
         ));
       }
       if (r.result!.eventType != null) {
-        extras.add(OTel.attributeString(
+        extras.add(OTelAPI.attributeString(
           'svix.event.type',
           r.result!.eventType!,
         ));
       }
       if (r.result!.channels != null) {
-        extras.add(OTel.attributeString('svix.channels', r.result!.channels!));
+        extras
+            .add(OTelAPI.attributeString('svix.channels', r.result!.channels!));
       }
       if (r.result!.status != null) {
-        extras.add(OTel.attributeString('svix.status', r.result!.status!));
+        extras.add(OTelAPI.attributeString('svix.status', r.result!.status!));
         if (r.result!.status == 'fail') {
           span.setStatus(SpanStatusCode.Error, 'Svix delivery failed');
         }
       }
       if (r.result!.attemptNumber != null) {
-        extras.add(OTel.attributeInt(
+        extras.add(OTelAPI.attributeInt(
           'svix.attempt.number',
           r.result!.attemptNumber!,
         ));
       }
       if (r.result!.endpointStatusCode != null) {
-        extras.add(OTel.attributeInt(
+        extras.add(OTelAPI.attributeInt(
           'svix.endpoint.response.status_code',
           r.result!.endpointStatusCode!,
         ));
       }
       if (r.result!.endpointLatencyMs != null) {
-        extras.add(OTel.attributeInt(
+        extras.add(OTelAPI.attributeInt(
           'svix.endpoint.response.latency_ms',
           r.result!.endpointLatencyMs!,
         ));
       }
       if (r.result!.disabledEndpoint != null) {
-        extras.add(OTel.attributeBool(
+        extras.add(OTelAPI.attributeBool(
           'svix.endpoint.disabled',
           r.result!.disabledEndpoint!,
         ));
@@ -156,7 +163,7 @@ Future<T> tracedSvix<T>({
         }
       }
       if (r.result!.statusCode != null) {
-        extras.add(OTel.attributeInt(
+        extras.add(OTelAPI.attributeInt(
           'http.response.status_code',
           r.result!.statusCode!,
         ));
@@ -167,13 +174,13 @@ Future<T> tracedSvix<T>({
           );
         }
       }
-      if (extras.isNotEmpty) span.addAttributes(OTel.attributes(extras));
+      if (extras.isNotEmpty) span.addAttributes(OTelAPI.attributes(extras));
     }
     return r.value;
   } catch (e, st) {
-    span.addAttributes(OTel.attributes([
-      OTel.attributeString(
-        ErrorResource.errorType.key,
+    span.addAttributes(OTelAPI.attributes([
+      OTelAPI.attributeString(
+        ErrorAttributes.errorType.key,
         e.runtimeType.toString(),
       ),
     ]));
